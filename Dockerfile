@@ -1,6 +1,7 @@
 FROM php:7.4-apache
 
-# 1. Installa i programmi di sistema necessari (Git, Zip, Curl sono fondamentali per Composer)
+# 1. Installa i programmi di sistema e le LIBRERIE DI SVILUPPO necessarie
+# La modifica importante è l'aggiunta di "libcurl4-openssl-dev" qui sotto
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -11,9 +12,10 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     libonig-dev \
-    libxml2-dev
+    libxml2-dev \
+    libcurl4-openssl-dev
 
-# 2. Installa ed abilita le estensioni PHP (il motore grafico e database)
+# 2. Installa ed abilita le estensioni PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     mysqli \
@@ -26,22 +28,22 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     xml \
     curl
 
-# 3. Abilita i moduli necessari di Apache (per i link e i file)
+# 3. Abilita i moduli necessari di Apache
 RUN a2enmod headers rewrite
 
-# 4. Installa Composer (Il gestore delle dipendenze che mancava!)
+# 4. Installa Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # 5. Prepara la cartella di lavoro
 WORKDIR /var/www/html
 
-# 6. Copia i file del tuo sito dentro l'immagine
+# 6. Copia i file del sito
 COPY ./lhc_web /var/www/html
 
-# 7. ESEGUI COMPOSER (Questo scarica la cartella "vendor" automaticamente!)
+# 7. ESEGUI COMPOSER (Scarica il motore/vendor)
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
-# 8. Correggi i permessi (Fondamentale per evitare l'Errore 500 sui volumi)
+# 8. Correggi i permessi
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
