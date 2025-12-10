@@ -12,7 +12,6 @@ RUN docker-php-ext-install zip
 RUN docker-php-ext-install gd
 RUN docker-php-ext-install bcmath
 RUN a2enmod headers
-RUN service apache2 restart
 
 # Copy the lhc_web folder to /var/www/html
 COPY ./lhc_web /var/www/html
